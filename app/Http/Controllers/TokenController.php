@@ -120,6 +120,7 @@ class TokenController extends Controller
         switch ($request->grant_type) {
             case "authorization_code":
                 $params = [
+                    'grant_type' => 'authorization_code',
                     'code' => $request->code,
                     'redirect_uri' => $request->redirect_uri,
                     'scope' => implode(" ", $request->scopes)
@@ -127,11 +128,13 @@ class TokenController extends Controller
                 break;
             case "client_credentials":
                 $params = [
+                    'grant_type' => 'client_credentials',
                     'scope' => implode(" ", $request->scopes)
                 ];
                 break;
             case "password":
                 $params = [
+                    'grant_type' => 'password',
                     'username' => $request->username,
                     'password' => $request->password,
                     'scope' => implode(" ", $request->scopes)
@@ -139,6 +142,7 @@ class TokenController extends Controller
                 break;
             case "refresh_token":
                 $params = [
+                    'grant_type' => 'refresh_token',
                     'refresh_token' => $request->refresh_token,
                     'scope' => implode(" ", $request->scopes)
                 ];
