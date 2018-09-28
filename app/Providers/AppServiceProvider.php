@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use Illuminate\Support\ServiceProvider;
 use kamermans\OAuth2\GrantType\ClientCredentials;
+use kamermans\OAuth2\GrantType\RefreshToken;
 use kamermans\OAuth2\OAuth2Middleware;
 
 class AppServiceProvider extends ServiceProvider
@@ -45,9 +46,16 @@ class AppServiceProvider extends ServiceProvider
                 "state" => time(),
             ];
 
-            $grant_type = new ClientCredentials($reauth_client, $reauth_config);
+            // This grant type is used to get a new Access Token and Refresh Token when
+            //  no valid Access Token or Refresh Token is available
+            $client_grant = new ClientCredentials($reauth_client, $reauth_config);
 
-            $oauth = new OAuth2Middleware($grant_type);
+            // This grant type is used to get a new Access Token and Refresh Token when
+            //  only a valid Refresh Token is available
+            $refresh_token_grant = new RefreshToken($reauth_client, $reauth_config);
+
+            // Tell the middleware to use both the client and refresh token grants
+            $oauth = new OAuth2Middleware($client_grant, $refresh_token_grant);
 
             $stack = HandlerStack::create();
 
