@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Support\SessionTokenPersistence;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use Illuminate\Support\ServiceProvider;
 use kamermans\OAuth2\GrantType\ClientCredentials;
 use kamermans\OAuth2\GrantType\RefreshToken;
 use kamermans\OAuth2\OAuth2Middleware;
+use kamermans\OAuth2\Persistence\NullTokenPersistence;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -56,6 +58,10 @@ class AppServiceProvider extends ServiceProvider
 
             // Tell the middleware to use both the client and refresh token grants
             $oauth = new OAuth2Middleware($client_grant, $refresh_token_grant);
+
+//            $oauth->setTokenPersistence(new NullTokenPersistence());
+
+            $oauth->setTokenPersistence(new SessionTokenPersistence());
 
             $stack = HandlerStack::create();
 

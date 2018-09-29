@@ -8,22 +8,14 @@
 
 namespace App\Support;
 
-use Carbon\Carbon;
-use Symfony\Component\HttpFoundation\Cookie;
-use Illuminate\Contracts\Encryption\Encrypter;
-use Illuminate\Contracts\Config\Repository as Config;
+use Firebase\JWT\JWT;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 use kamermans\OAuth2\Persistence\TokenPersistenceInterface;
 use kamermans\OAuth2\Token\TokenInterface;
 
 class SessionTokenPersistence implements TokenPersistenceInterface
 {
-
-    /**
-     * The configuration repository implementation.
-     *
-     * @var \Illuminate\Contracts\Config\Repository
-     */
-    protected $config;
 
     /**
      * The encrypter implementation.
@@ -42,14 +34,12 @@ class SessionTokenPersistence implements TokenPersistenceInterface
     /**
      * Create an API token cookie factory instance.
      *
-     * @param  \Illuminate\Contracts\Config\Repository  $config
-     * @param  \Illuminate\Contracts\Encryption\Encrypter  $encrypter
+     * @param  \Illuminate\Contracts\Encryption\Encrypter $encrypter
      * @return void
      */
-    public function __construct(Config $config, Encrypter $encrypter)
+    public function __construct()
     {
-        $this->config = $config;
-        $this->encrypter = $encrypter;
+        $this->encrypter = app('Illuminate\Contracts\Encryption\Encrypter');
     }
 
     /**
@@ -61,13 +51,17 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     public function restoreToken(TokenInterface $token)
     {
-        if(!isset($_COOKIE[$this->cookie])){
+        if (!isset($_COOKIE[$this->cookie])) {
             return null;
         }
 
-        $token = $_COOKIE[$this->cookie];
+        $cookie = Cookie::get($this->cookie);
 
-        return JWT::decode($token, $this->encrypter->getKey());
+        return unserialize($cookie);
+
+         // $token_str = JWT::decode($cookie, $this->encrypter->getKey(), ['HS256']);
+
+         // return unserialize($token_str);
     }
 
     /**
@@ -77,21 +71,26 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     public function saveToken(TokenInterface $token)
     {
-        $config = $this->config->get('session');
+        $config = config('session');
 
-        $expiration = Carbon::now()->addMinutes($config['lifetime']);
+        $expires_in = $config['lifetime'];
+        // $expires_in = $token->getExpiresAt();
+        // $expires_in = max($config['lifetime'], $token->getExpiresAt());
 
-        new Cookie(
+        Log::warning(['serialized_token' => serialize($token)]);
+
+        Cookie::queue(Cookie::make(
             $this->cookie,
-            $this->createToken($token),
-            $expiration,
+            serialize($token),
+            // $this->createToken($token),
+            $expires_in,
             $config['path'],
             $config['domain'],
             $config['secure'],
             true,
             false,
             $config['same_site'] ?? null
-        );
+        ));
     }
 
     /**
@@ -123,7 +122,7 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     protected function createToken(TokenInterface $token)
     {
-        return JWT::encode($token, $this->encrypter->getKey());
+         return JWT::encode(serialize($token), $this->encrypter->getKey());
     }
 
 }
