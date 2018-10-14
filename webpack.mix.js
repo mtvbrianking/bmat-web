@@ -13,3 +13,6 @@ const mix = require('laravel-mix');
 
 mix.js('resources/js/app.js', 'public/js')
    .sass('resources/sass/app.scss', 'public/css');
+
+mix.js('node_modules/perfect-scrollbar/dist/perfect-scrollbar.min.js', 'public/plugins/js/perfect-scrollbar.min.js')
+	.styles('node_modules/perfect-scrollbar/css/perfect-scrollbar.min.css', 'public/plugins/css/perfect-scrollbar.css');

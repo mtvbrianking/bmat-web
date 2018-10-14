@@ -16,6 +16,10 @@ Auth::routes(['verify' => true]);
 
 Route::get('/', 'HomeController@index')->middleware('verified')->name('home');
 
+Route::get('/stellar', function(){
+	return view('stellar');
+});
+
 Route::group(['prefix' => 'oauth'], function(){
     Route::get('/authorize', 'TokenController@requestCode');
 
