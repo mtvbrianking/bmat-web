@@ -16,3 +16,5 @@ mix.js('resources/js/app.js', 'public/js')
 
 mix.js('node_modules/perfect-scrollbar/dist/perfect-scrollbar.min.js', 'public/plugins/js/perfect-scrollbar.min.js')
 	.styles('node_modules/perfect-scrollbar/css/perfect-scrollbar.min.css', 'public/plugins/css/perfect-scrollbar.css');
+
+// mix.sass('resources/sass/landing-screens/_auth.scss', 'public/css');

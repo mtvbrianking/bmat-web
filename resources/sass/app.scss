@@ -104,7 +104,7 @@
 /*@import "components/bootstrap-progress";*/
 /*@import "components/buttons";*/
 /*@import "components/cards";*/
-/*@import "components/checkbox-radio";*/
+@import "components/checkbox-radio";
 /*@import "components/forms";*/
 /*@import "components/icons";*/
 /*@import "components/lists";*/
@@ -115,5 +115,5 @@
 
 /*-------------------------------------------------------------------*/
 /* === Landing screens === */
-/*@import "landing-screens/auth";*/
+@import "landing-screens/auth";
 /*@import "landing-screens/error";*/

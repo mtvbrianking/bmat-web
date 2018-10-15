@@ -12,13 +12,13 @@
 */
 
 
-Auth::routes(['verify' => true]);
+Auth::routes();
 
-Route::get('/', 'HomeController@index')->middleware('verified')->name('home');
+//Auth::routes(['verify' => true]);
 
-Route::get('/stellar', function(){
-	return view('stellar');
-});
+Route::get('/', 'HomeController@index')->name('home');
+
+// Route::get('/', 'HomeController@index')->middleware('verified')->name('home');
 
 Route::group(['prefix' => 'oauth'], function(){
     Route::get('/authorize', 'TokenController@requestCode');

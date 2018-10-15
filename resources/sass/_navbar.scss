@@ -323,6 +323,25 @@
       padding-top: $navbar-height;
     }
   }
+
+  // User Initials - Default avatar
+
+  .circle {
+    background-color: $content-bg;
+    border-radius: 50%;
+    height: $avatar-size;
+    text-align: center;
+    width: $avatar-size;
+  }
+
+  .initials {
+    font-size: calc(#{$avatar-size} / 2);
+    line-height: 1;
+    position: relative;
+    top: calc(#{$avatar-size} / 4);
+    cursor: pointer;
+  }
+
 }
 
 @media (max-width: 991px) {
