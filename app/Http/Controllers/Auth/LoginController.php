@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -148,15 +149,21 @@ class LoginController extends Controller
     /**
      * The user has been authenticated.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
     protected function authenticated(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
+        // Authentication passed...
         if (Auth::attempt($credentials)) {
-            // Authentication passed...
+
+            // update user last seen
+            $user = Auth::user();
+            $user->last_seen_at = Carbon::now()->format('Y-m-d H:i:s');
+            $user->save();
+
             return redirect()->intended($this->redirectPath());
         }
     }
