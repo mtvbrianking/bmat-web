@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\User;
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
 
@@ -43,7 +46,7 @@ class RegisterController extends Controller
     /**
      * Get a validator for an incoming registration request.
      *
-     * @param  array  $data
+     * @param  array $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
@@ -58,7 +61,7 @@ class RegisterController extends Controller
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param  array  $data
+     * @param  array $data
      * @return \App\User
      */
     protected function create(array $data)
@@ -69,4 +72,81 @@ class RegisterController extends Controller
             'password' => Hash::make($data['password']),
         ]);
     }
+
+    /**
+     * Handle a registration request for the application.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function register(Request $request)
+    {
+        $this->validator($request->all())->validate();
+
+        try {
+
+            $client = app('guzzle');
+
+            $options = [
+                'form_params' => $request->input(),
+            ];
+
+            $api_response = $client->post('users', $options);
+
+            $remote_user = json_decode($api_response->getBody(), true);
+
+            $user = $this->syncRemoteUser($remote_user);
+
+            event(new Registered($user));
+
+            return $this->registered($request, $user)
+                ?: redirect($this->redirectPath());
+
+        } catch (\GuzzleHttp\Exception\ClientException $ex) {
+            $status = $ex->getResponse()->getStatusCode();
+            if ($status == 401) {
+                Log::error(json_encode([$status => $ex->getMessage()]));
+                flash("Unauthenticated #401")->warning()->important();
+            }
+            if ($status == 422) {
+                $response = json_decode($ex->getResponse()->getBody(), true);
+
+                return redirect()->back()
+                    ->withInput($request->input())
+                    ->withErrors($response['errors']);
+            }
+        } catch (\GuzzleHttp\Exception\RequestException $ex) {
+            Log::error(json_encode([$ex->getCode() => $ex->getMessage()]));
+            flash("Something went terribly wrong")->warning()->important();
+            return redirect()->back();
+        }
+
+    }
+
+    /**
+     * @param array $r_user
+     * @param $secret
+     * @return \App\User
+     */
+    public function syncRemoteUser(array $r_user)
+    {
+        // Prevent duplicate user accounts
+        User::query()
+            ->where(['id' => $r_user['id']])
+            ->orWhere(['name' => $r_user['name']])
+            ->orWhere(['email' => $r_user['email']])
+            ->forceDelete();
+
+        // Mirror user details...
+        $user = new User();
+        $user->id = $r_user['id'];
+        $user->name = $r_user['name'];
+        $user->email = $r_user['email'];
+        $user->password = Hash::make(str_random());
+        // $user->email_verified_at = $r_user['email_verified_at'];
+        $user->save();
+
+        return $user;
+    }
+
 }

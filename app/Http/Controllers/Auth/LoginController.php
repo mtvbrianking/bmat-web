@@ -70,7 +70,7 @@ class LoginController extends Controller
 //            return $this->sendLoginResponse($request);
 //        }
 
-        // Attemp remote authentication
+        // Attempt remote authentication
 
         $client = app('guzzle');
 
@@ -127,7 +127,7 @@ class LoginController extends Controller
      */
     public function syncRemoteUser(array $r_user, $secret)
     {
-        // Prevent duplicate emails during development
+        // Prevent duplicate user accounts
         User::query()
             ->where(['id' => $r_user['id']])
             ->orWhere(['email' => $r_user['email']])
@@ -139,7 +139,7 @@ class LoginController extends Controller
         $user->name = $r_user['name'];
         $user->email = $r_user['email'];
         $user->password = Hash::make($secret);
-        $user->email_verified_at = $r_user['email_verified_at'];
+        // $user->email_verified_at = $r_user['email_verified_at'];
         $user->save();
 
         return $user;
