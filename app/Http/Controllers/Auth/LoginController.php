@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\SessionTokenPersistence;
+use App\Support\Token;
 use App\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
@@ -73,13 +75,13 @@ class LoginController extends Controller
 
         // Attempt remote authentication
 
-        $client = app('guzzle');
+        $client = app('guzzle', [
+            'username' => $request->email,
+            'password' => $request->password,
+        ]);
 
         $options = [
-            'form_params' => [
-                'email' => $request->email,
-                'password' => $request->password,
-            ],
+            'form_params' => $request->input(),
         ];
 
         try {

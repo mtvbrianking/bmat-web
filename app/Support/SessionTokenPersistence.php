@@ -11,7 +11,9 @@ namespace App\Support;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use kamermans\OAuth2\Persistence\TokenPersistenceInterface;
+use kamermans\OAuth2\Token\RawToken;
 use kamermans\OAuth2\Token\TokenInterface;
 
 class SessionTokenPersistence implements TokenPersistenceInterface
@@ -51,17 +53,24 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     public function restoreToken(TokenInterface $token)
     {
-        if (!isset($_COOKIE[$this->cookie])) {
-            return null;
-        }
+        $value = @file_get_contents(storage_path('app/token.txt'));
+        // $token = new \kamermans\OAuth2\Token\RawToken();
+        $value = $value === false ? null : $token->unserialize(json_decode($value, true));
+        Log::debug(['restoring' => $token]);
 
-        $cookie = Cookie::get($this->cookie);
+        return $value;
 
-        return unserialize($cookie);
+//        if (!isset($_COOKIE[$this->cookie])) {
+//            return null;
+//        }
+//
+//        $cookie = Cookie::get($this->cookie);
+//
+//        return unserialize($cookie);
 
-         // $token_str = JWT::decode($cookie, $this->encrypter->getKey(), ['HS256']);
+        // $token_str = JWT::decode($cookie, $this->encrypter->getKey(), ['HS256']);
 
-         // return unserialize($token_str);
+        // return unserialize($token_str);
     }
 
     /**
@@ -71,26 +80,27 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     public function saveToken(TokenInterface $token)
     {
-        $config = config('session');
+        Log::debug(['saving' => $token]);
+        Storage::disk('local')->put('/token.txt', json_encode($token->serialize()));
 
-        $expires_in = $config['lifetime'];
-        // $expires_in = $token->getExpiresAt();
-        // $expires_in = max($config['lifetime'], $token->getExpiresAt());
-
-        Log::warning(['serialized_token' => serialize($token)]);
-
-        Cookie::queue(Cookie::make(
-            $this->cookie,
-            serialize($token),
-            // $this->createToken($token),
-            $expires_in,
-            $config['path'],
-            $config['domain'],
-            $config['secure'],
-            true,
-            false,
-            $config['same_site'] ?? null
-        ));
+//        $config = config('session');
+//
+//        $expires_in = $config['lifetime'];
+//        // $expires_in = $token->getExpiresAt();
+//        // $expires_in = max($config['lifetime'], $token->getExpiresAt());
+//
+//        Cookie::queue(Cookie::make(
+//            $this->cookie,
+//            serialize($token),
+//            // $this->createToken($token),
+//            $expires_in,
+//            $config['path'],
+//            $config['domain'],
+//            $config['secure'],
+//            true,
+//            false,
+//            $config['same_site'] ?? null
+//        ));
     }
 
     /**
@@ -98,10 +108,12 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     public function deleteToken()
     {
-        if (isset($_COOKIE[$this->cookie])) {
-            setcookie($this->cookie, '', time() - 3600, '/');
-            unset($_COOKIE[$this->cookie]);
-        }
+        Log::debug(['delete' => storage_path('app/token.txt')]);
+        @unlink(storage_path('app/token.txt'));
+//        if (isset($_COOKIE[$this->cookie])) {
+//            setcookie($this->cookie, '', time() - 3600, '/');
+//            unset($_COOKIE[$this->cookie]);
+//        }
     }
 
     /**
@@ -111,7 +123,8 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     public function hasToken()
     {
-        return isset($_COOKIE[$this->cookie]);
+        return file_exists(storage_path('app/token.txt'));
+        // return isset($_COOKIE[$this->cookie]);
     }
 
     /**
@@ -122,7 +135,7 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     protected function createToken(TokenInterface $token)
     {
-         return JWT::encode(serialize($token), $this->encrypter->getKey());
+        return JWT::encode(serialize($token), $this->encrypter->getKey());
     }
 
 }

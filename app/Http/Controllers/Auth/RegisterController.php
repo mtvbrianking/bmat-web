@@ -85,7 +85,7 @@ class RegisterController extends Controller
 
         try {
 
-            $client = app('guzzle');
+            $client = app('guzzle-client');
 
             $options = [
                 'form_params' => $request->input(),
