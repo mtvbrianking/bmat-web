@@ -51,11 +51,11 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $exception)
     {
         $feedback = [
-            'code' => $exception->getCode(),
-            'message' => $exception->getMessage(),
-            'class' => $exception . get_class(),
-            'line' => $exception->getLine(),
             'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'message' => $exception->getMessage(),
+            'code' => $exception->getCode(),
+            'class' => get_class($exception),
             // 'trace' => $exception->getTraceAsString(),
             // 'exception' => $exception->__toString(),
         ];
@@ -68,9 +68,40 @@ class Handler extends ExceptionHandler
 
         if ($exception instanceof AccessTokenRequestException) {
             Auth::logout();
-            // $feedback['body'] = json_decode($exception->getResponse()->getBody(), true);
+            Log::error(sprintf(
+                "%s:%d %s (%d) [%s]\n",
+                    $exception->getFile(),
+                    $exception->getLine(),
+                    $exception->getMessage(),
+                    $exception->getCode(),
+                    get_class($exception)
+                )
+            );
 
-            return response()->view('errors.500', [], 500);
+            $guzzle_request_exception = $exception->getPrevious();
+
+            $api_response = json_decode($guzzle_request_exception->getResponse()->getBody(), true);
+
+            $feedback['body'] = $api_response;
+
+            switch ($api_response['error']) {
+                case 'invalid_client':
+                    // Client App: wrong id or secret
+                    return response()->view('errors.500', [], 500);
+                    break;
+
+                case 'invalid_credentials':
+                    // User: wrong username or password
+                    return redirect()
+                        ->route('login')
+                        ->withInput($request->only(['email', 'remember']))
+                        ->withErrors(['email' => 'Wrong email or password.']);
+                    break;
+
+                default:
+                    return response()->view('errors.500', [], 500);
+                    break;
+            }
         }
 
         return parent::render($request, $exception);
