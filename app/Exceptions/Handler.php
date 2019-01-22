@@ -50,15 +50,27 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        Log::error([
-            'exception' => $exception . get_class() . getCanonicalName(),
-            'code' => $exception->getMessage(),
-            'message' => $exception->getMessage()
-        ]);
+        $feedback = [
+            'code' => $exception->getCode(),
+            'message' => $exception->getMessage(),
+            'class' => $exception . get_class(),
+            'line' => $exception->getLine(),
+            'file' => $exception->getFile(),
+            // 'trace' => $exception->getTraceAsString(),
+            // 'exception' => $exception->__toString(),
+        ];
+
+        if ($this->isHttpException($exception)) {
+            $feedback['status'] = $exception->getStatusCode();
+        }
+
+        Log::error('Exception', $feedback);
 
         if ($exception instanceof AccessTokenRequestException) {
             Auth::logout();
-            return redirect('/login');
+            // $feedback['body'] = json_decode($exception->getResponse()->getBody(), true);
+
+            return response()->view('errors.500', [], 500);
         }
 
         return parent::render($request, $exception);
