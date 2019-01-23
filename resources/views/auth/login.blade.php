@@ -11,15 +11,13 @@
                                 <h1 class="font-weight-medium">SIGN IN</h1>
                                 {{--<h4 class="font-weight-light">to continue...</h4>--}}
 
-                                @if (session('status'))
-                                    <div class="row">
-                                        <div class="alert alert-success" role="alert">
-                                            {{ session('status') }}
-                                        </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        @include('flash::message')
                                     </div>
-                                @endif
+                                </div>
 
-                                <form method="POST" action="{{ route('login') }}" class="pt-4">
+                                <form method="POST" action="{{ route('login') }}" class="">
 
                                     @csrf
 

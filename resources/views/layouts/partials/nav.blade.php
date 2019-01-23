@@ -1,10 +1,10 @@
 <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
     <div class="text-center navbar-brand-wrapper">
         <a class="navbar-brand brand-logo" href="{{ url('/') }}">
-            <img src="{{ asset('img/'.Auth::user()->v_logo_name) }}" alt="logo">
+            <img src="{{ asset('img/logo.svg') }}" alt="logo">
         </a>
         <a class="navbar-brand brand-logo-mini" href="{{ url('/') }}">
-            <img src="{{ asset('img/mini_'.Auth::user()->v_logo_name) }}" alt="logo">
+            <img src="{{ asset('img/logo_mini.svg') }}" alt="logo">
         </a>
     </div>
     <div class="navbar-menu-wrapper d-flex align-items-center">

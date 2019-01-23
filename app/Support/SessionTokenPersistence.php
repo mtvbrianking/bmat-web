@@ -56,7 +56,9 @@ class SessionTokenPersistence implements TokenPersistenceInterface
         $value = @file_get_contents(storage_path('app/token.txt'));
         // $token = new \kamermans\OAuth2\Token\RawToken();
         $value = $value === false ? null : $token->unserialize(json_decode($value, true));
-        Log::debug(['restoring' => $token]);
+        Log::debug('token_storage', [
+            'restore' => storage_path('app/token.txt'),
+        ]);
 
         return $value;
 
@@ -80,7 +82,7 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     public function saveToken(TokenInterface $token)
     {
-        Log::debug(['saving' => $token]);
+        Log::debug('token_storage', ['save' => storage_path('app/token.txt')]);
         Storage::disk('local')->put('/token.txt', json_encode($token->serialize()));
 
 //        $config = config('session');
@@ -108,7 +110,7 @@ class SessionTokenPersistence implements TokenPersistenceInterface
      */
     public function deleteToken()
     {
-        Log::debug(['delete' => storage_path('app/token.txt')]);
+        Log::debug('token_storage', ['delete' => storage_path('app/token.txt')]);
         @unlink(storage_path('app/token.txt'));
 //        if (isset($_COOKIE[$this->cookie])) {
 //            setcookie($this->cookie, '', time() - 3600, '/');

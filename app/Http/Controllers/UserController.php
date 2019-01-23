@@ -65,7 +65,6 @@ class UserController extends Controller
      */
     public function showProfile($id)
     {
-
         $response = app('guzzle')->get("users/$id");
 
         $user = json_decode((string) $response->getBody(), true);

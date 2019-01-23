@@ -98,6 +98,12 @@ class Handler extends ExceptionHandler
                         ->withErrors(['email' => 'Wrong email or password.']);
                     break;
 
+                case 'invalid_request':
+                    // Token has expired
+                    flash('Session has expired.')->warning();
+                    return redirect()->route('login');
+                    break;
+
                 default:
                     return response()->view('errors.500', [], 500);
                     break;
